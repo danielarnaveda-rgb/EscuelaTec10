@@ -7,6 +7,7 @@ class Insumo {
 document.addEventListener('DOMContentLoaded',()=>run(async()=>{
  $('#tbody-insumos').replaceChildren();$('.products-grid').replaceChildren();$('.alerts-list').replaceChildren();document.querySelectorAll('.metrics-grid h2').forEach(el=>el.textContent='—');
  if(!await prepararModulo('objetos.ver'))return;
+ aplicarPermisos();
  let categoria='';const tbody=$('#tbody-insumos');
  function estadoClase(i){return i.stock===0?'danger':i.stockMinimo!==null&&i.stock<=i.stockMinimo?'warning':'success';}
  function renderizar(){
@@ -15,9 +16,8 @@ document.addEventListener('DOMContentLoaded',()=>run(async()=>{
   visibles.forEach(i=>{
    const tr=document.createElement('tr');tr.innerHTML=`<td><strong>${esc(i.nombre)}</strong><br><small>${esc(i.id)}</small></td><td>${esc(i.categoria)}</td><td>${esc(i.stock??'Sin saldo')} ${esc(i.unidad??'(sin unidad definida)')}</td><td><span class="status-tag tag-${estadoClase(i)}">${esc(i.obtenerEstado())}</span></td><td></td>`;
    const td=tr.lastElementChild;if(puede('objetos.editar'))td.append(action('Editar',()=>editarFichaCantidad(i),'btn-sm'));
-   if(puede('stock.mover')&&i.modo_control==='cantidad')td.append(action('Stock inicial',()=>establecerStockInicial(i),'btn-sm'),action('Ingreso / egreso',()=>stock(i),'btn-sm'));
+   if(puede('stock.mover')&&i.modo_control==='cantidad')td.append(action('Stock inicial',()=>establecerStockInicial(i),'btn-sm'),action('Ingreso / egreso',()=>stock(i),'btn-sm'),action('Historial',()=>verHistorialStock(i),'btn-sm'));
    td.append(action('QR',()=>verFichaQR(i.id),'btn-sm'));
-   if(puede('objetos.baja'))td.append(action('Dar de baja',async()=>{if(confirm('¿Dar de baja '+i.nombre+'?')){await eliminarObjeto(i.id);await cargarInsumos();}},'btn-sm'));
    tbody.append(tr);
   });
   if(!visibles.length){const td=tbody.insertRow().insertCell();td.colSpan=5;td.textContent='Sin registros';}

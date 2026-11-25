@@ -40,6 +40,42 @@ async function prepararModulo(permiso){
 function stock(o,tipo='ingreso'){
  modal('Movimiento: '+o.nombre,`${select('tipo','Operación',[['ingreso','Ingreso'],['egreso','Egreso']],tipo)}${field('cantidad','Cantidad ('+(o.unidad??'sin unidad')+')','','number','required min="0.001" step="0.001"')}${field('motivo','Motivo','','text','required maxlength="180"')}<p>Saldo actual: ${esc(o.stock)} ${esc(o.unidad)}.</p>`,async d=>{await api('stock',{metodo:'POST',datos:{...d,id:o.id}});await recargarModulo();});
 }
+async function verHistorialStock(i) {
+ try {
+  const movimientos = await api('movimientos', {params: {id: i.id}});
+
+  const filas = movimientos.map(m => `
+   <tr>
+    <td>${esc(new Date(m.fecha.replace(' ', 'T')).toLocaleString('es-AR'))}</td>
+    <td>${esc(m.tipo)}</td>
+    <td>${esc(m.cantidad)} ${esc(i.unidad ?? '')}</td>
+    <td>${esc(m.motivo)}</td>
+    <td>${esc(m.operador)}</td>
+   </tr>
+  `).join('');
+
+  const html = movimientos.length
+   ? `<div style="overflow-x:auto">
+       <table>
+        <thead>
+         <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Cantidad</th>
+          <th>Motivo</th>
+          <th>Operador</th>
+         </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+       </table>
+      </div>`
+   : '<p>Este artículo todavía no tiene movimientos registrados.</p>';
+
+  modal('Historial de stock: ' + i.nombre, html, null);
+ } catch (error) {
+  alert('No se pudo cargar el historial: ' + error.message);
+ }
+}
 function editarFichaCantidad(o){
  modal(o?'Editar insumo':'Nuevo insumo',`${field('nombre','Nombre',o?.nombre??'','text','required maxlength="160"')}${select('tipo','Tipo',[['insumo','Insumo'],['repuesto','Repuesto']],o?.tipo??'insumo')}${field('categoria','Categoría',o?.categoria??'General','text','maxlength="80"')}${field('ubicacion','Lugar donde se guarda',o?.ubicacion??'','text','maxlength="180"')}${field('unidad','Unidad de medida',o?.unidad??'','text','required maxlength="40"')}${field('stockMinimo','Stock mínimo',o?.stockMinimo??'','number','min="0" step="0.001"')}<label>Notas<textarea name="notas" maxlength="5000">${esc(o?.notas??'')}</textarea></label><p>Los saldos cambian mediante movimientos de ingreso o egreso.</p>`,async d=>{if(d.stockMinimo==='')delete d.stockMinimo;await guardarObjeto({...d,modo_control:o?.modo_control??'cantidad',...(o?{id:o.id}:{})});await recargarModulo();});
 }
