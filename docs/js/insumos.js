@@ -7,6 +7,7 @@ class Insumo {
 document.addEventListener('DOMContentLoaded',()=>run(async()=>{
  $('#tbody-insumos').replaceChildren();$('.products-grid').replaceChildren();$('.alerts-list').replaceChildren();document.querySelectorAll('.metrics-grid h2').forEach(el=>el.textContent='—');
  if(!await prepararModulo('objetos.ver'))return;
+ aplicarPermisos();
  let categoria='';const tbody=$('#tbody-insumos');
  function estadoClase(i){return i.stock===0?'danger':i.stockMinimo!==null&&i.stock<=i.stockMinimo?'warning':'success';}
  function renderizar(){
